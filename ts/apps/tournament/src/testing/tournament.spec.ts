@@ -4,11 +4,6 @@ import { Tournament, TournamentPhaseType } from '../app/api/api-model';
 
 const exampleTournament = {
   name: 'Unreal',
-  participants: [
-    { name: 'Alice', elo: 10 },
-    { name: 'Bob', elo: 20 },
-  ],
-  phases: [{ type: TournamentPhaseType.SingleBracketElimination }],
 } as Tournament;
 
 describe('/tournament endpoint', () => {
