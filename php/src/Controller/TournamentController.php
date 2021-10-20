@@ -20,7 +20,7 @@ class TournamentController extends AbstractController
     }
 
     /**
-     * @Route("/api/tournament", name="create_tournament", methods={"POST"})
+     * @Route("/api/tournaments", name="create_tournament", methods={"POST"})
      */
     public function addTournament(Request $request): Response
     {
@@ -36,7 +36,7 @@ class TournamentController extends AbstractController
     }
 
     /**
-     * @Route("/api/tournament/{id}", name="get_tournament", methods={"GET"})
+     * @Route("/api/tournaments/{id}", name="get_tournament", methods={"GET"})
      */
     public function getTournament(string $id): Response
     {

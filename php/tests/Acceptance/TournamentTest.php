@@ -9,7 +9,7 @@ class TournamentTest extends ApiTestCase
     public function testTournamentCreation(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/api/tournament', [
+        $client->request('POST', '/api/tournaments', [
             'headers' => [
                 'Content-Type: application/json',
                 'Accept: application/json',
@@ -26,7 +26,7 @@ class TournamentTest extends ApiTestCase
     public function testTournamentCreationShouldEnableToRetrieveAfter(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/api/tournament', [
+        $client->request('POST', '/api/tournaments', [
             'headers' => [
                 'Content-Type: application/json',
                 'Accept: application/json',
@@ -39,7 +39,7 @@ class TournamentTest extends ApiTestCase
 
         $this->assertIsString($response["id"]);
 
-        $client->request('GET', '/api/tournament/' . $response["id"]);
+        $client->request('GET', '/api/tournaments/' . $response["id"]);
         $this->assertResponseIsSuccessful();
         $response = $client->getResponse()->toArray();
         $this->assertEquals("Tournament", $response["name"]);
@@ -47,7 +47,7 @@ class TournamentTest extends ApiTestCase
 
     public function testShouldReturnEmptyIfTournamentDoesNotExist(): void
     {
-        static::createClient()->request('GET', '/api/tournament/123');
+        static::createClient()->request('GET', '/api/tournaments/123');
 
         $this->assertResponseStatusCodeSame(404);
     }
