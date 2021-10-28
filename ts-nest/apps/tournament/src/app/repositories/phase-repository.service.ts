@@ -10,7 +10,7 @@ export class TournamentPhaseRepositoryService {
     tournamentId: string
   ): void {
     const tournamentRepository = new TournamentRepositoryService();
-    let tournamentToModify = tournamentRepository.getTournament(tournamentId);
+    const tournamentToModify = tournamentRepository.getTournament(tournamentId);
     tournamentToModify.phases;
   }
 }

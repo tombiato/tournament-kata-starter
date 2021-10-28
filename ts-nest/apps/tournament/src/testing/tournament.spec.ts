@@ -36,5 +36,17 @@ describe('/tournament endpoint', () => {
 
       expect(get.body.name).toEqual(exampleTournament.name);
     });
+
+    it('should have stored the phase in the tournament', async () => {
+      const { bodyTournament } = await request(app.getHttpServer())
+        .post('/api/tournaments')
+        .send(exampleTournament)
+        .expect(201);
+
+      const { bodyTournamentPhase } = await request(app.getHttpServer())
+        .post('/api/tournaments/${bodyTournament.id}/phases')
+        .send(exampleTournament)
+        .expect(201);
+    });
   });
 });
