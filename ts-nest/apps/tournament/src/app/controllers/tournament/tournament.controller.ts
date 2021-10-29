@@ -7,7 +7,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common';
-import { Tournament, TournamentToAdd, Participant } from '../../api-model';
+import { Tournament, TournamentToAdd, Participant, ParticipantToAdd } from '../../api-model';
 import { v4 as uuidv4 } from 'uuid';
 import { TournamentRepositoryService } from '../../repositories/tournament-repository.service';
 
@@ -18,7 +18,8 @@ export class TournamentController {
   @Get(':id')
   public getTournament(@Param('id') id: string): Tournament {
     try {
-      return this.tournamentRepository.getTournament(id);
+      const tournament = this.tournamentRepository.getTournament(id)
+      return tournament;
     } catch (error) {
       throw new HttpException("le tournoi n'existe pas", HttpStatus.NOT_FOUND);
     }
@@ -28,7 +29,7 @@ export class TournamentController {
   public createTournament(@Body() tournamentToAdd: TournamentToAdd): {
     id: string;
   } {
-    if (tournamentToAdd.name) {
+    try {
       const tournament = {
         id: uuidv4(),
         name: tournamentToAdd.name,
@@ -39,7 +40,7 @@ export class TournamentController {
       this.tournamentRepository.saveTournament(tournament);
 
       return { id: tournament.id };
-    } else {
+    } catch (error) {
       throw new HttpException(
         'le champ nom est manquant ou vide',
         HttpStatus.BAD_REQUEST
@@ -49,30 +50,28 @@ export class TournamentController {
 
   @Post(':id/participants')
   public addParticipant(
-    @Body() participantToAdd: Participant,
-    @Param('id') tournamentId: string
-  ): Participant {
-    if (typeof participantToAdd.elo !== string || !participantToAdd.name) {
+    @Param('id') idTournament: string,
+    @Body() participantToAdd: ParticipantToAdd
+  ): string {
+    if (!participantToAdd?.name || !Number.isInteger(participantToAdd?.elo))
       throw new HttpException(
-        "le nom (chaine de caractères non vide) ou l'elo (nombre entier) sont incorrects",
+        'le nom (chaine de caractères non vide) ou l\'elo (nombre entier) sont incorrects', 
         HttpStatus.BAD_REQUEST
+        );
+
+    if (!this.tournamentRepository.getTournament(idTournament))
+      throw new HttpException(
+        'le tournoi n\'existe pas',
+        HttpStatus.NOT_FOUND
       );
-    }
-    const participant = {
+
+    const participant: Participant = {
       id: uuidv4(),
-      name: participantToAdd.name,
+      name: participantToAdd.name.trim(),
       elo: participantToAdd.elo,
     };
 
-    const tournament = this.tournamentRepository.getTournament(tournamentId);
-
-    if (!tournament) {
-      throw new HttpException("le tournoi n'existe pas", HttpStatus.NOT_FOUND);
-    }
-
-    tournament.participants.push(participant);
-
-    this.tournamentRepository.saveTournament(tournament);
+    this.tournamentRepository.saveParticipant(idTournament, participant);
 
     return participant.id;
   }

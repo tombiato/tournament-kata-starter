@@ -15,19 +15,24 @@ const participantExemple = {
 describe('/tournament/participants endpoint', () => {
   let app: INestApplication;
 
+  let tournoisExemple;
+
+  beforeEach(async () => {
+    const { body: bodyTournament } = await request(app.getHttpServer())
+          .post(`/api/tournaments`)
+          .send(exampleTournament)
+          .expect(201);
+          tournoisExemple = bodyTournament;
+  }); 
+
   beforeAll(async () => {
     app = await startApp();
   });
 
   describe('[POST] when creating a participant', () => {
     it('should have stored the new participant in the tournament', async () => {
-      const { body: bodyTournament } = await request(app.getHttpServer())
-        .post(`/api/tournaments`)
-        .send(exampleTournament)
-        .expect(201);
-
       const { body: bodyParticipant } = await request(app.getHttpServer())
-        .post(`/api/tournaments/${bodyTournament.id}/participants`)
+        .post(`/api/tournaments/${tournoisExemple.id}/participants`)
         .send(participantExemple)
         .expect(201);
     });
@@ -45,30 +50,22 @@ describe('/tournament/participants endpoint', () => {
         name: 2334,
         elo: 'dood',
       };
-      const { body: bodyTournament } = await request(app.getHttpServer())
-        .post(`/api/tournaments`)
-        .send(exampleTournament)
-        .expect(201);
       const result = await request(app.getHttpServer())
-        .post(`/api/tournaments/${bodyTournament.id}/participants`)
+        .post(`/api/tournaments/${tournoisExemple.id}/participants`)
         .send(userWithError)
         .expect(400);
     });
   });
   describe('[GET] when getting all participants', () => {
     it('should have stored a new participant and send it', async () => {
-      const { body: bodyTournament } = await request(app.getHttpServer())
-        .post(`/api/tournaments`)
-        .send(exampleTournament)
-        .expect(201);
 
       const { body: bodyParticipant } = await request(app.getHttpServer())
-        .post(`/api/tournaments/${bodyTournament.id}/participants`)
+        .post(`/api/tournaments/${tournoisExemple.id}/participants`)
         .send(participantExemple)
         .expect(201);
 
       const { body: bodyAllParticipants } = await request(app.getHttpServer())
-        .get(`/api/tournament/${bodyTournament.id}/participants`)
+        .get(`/api/tournament/${tournoisExemple.id}/participants`)
         .expect(200);
 
       const expected = [];

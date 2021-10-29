@@ -14,8 +14,12 @@ export class TournamentRepositoryService {
     return this.tournaments.get(tournamentId);
   }
 
-  public getParticipants(tournamentId: string): Participant[] {
-    const participantsList = this.getTournament(tournamentId).participants;
-    return participantsList;
+  public saveParticipant(tournamentId: string, participant: Participant): void {
+    //this.tournaments.set(tournamentId, participant);
+    const tournament = this.tournaments.get(tournamentId);
+    this.tournaments.set(tournamentId, {
+      ...tournament, 
+      participants: [...tournament.participants, participant]
+    })
   }
 }
