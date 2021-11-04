@@ -1,11 +1,3 @@
-import * as mongoose from 'mongoose'
-
-export const TournamentSchema = new mongoose.Schema({
-  name: {type: String, required: true},
-  phases: {type: Array, required: true},
-  participants: {type: Array, required: true}
-})
-
 export enum TournamentPhaseType {
   SingleBracketElimination = 'SingleBracketElimination',
   SwissRound = 'SwissRound',
@@ -21,19 +13,12 @@ export interface Participant {
   elo: number;
 }
 
-export interface ParticipantToAdd {
-  name: string;
-  elo: number;
-}
-
 export interface TournamentToAdd {
   name: string;
 }
 
-export interface Tournament {
-  id: string;
+export interface CreateTournamentDto {
   name: string;
-
   phases: TournamentPhase[];
   participants: Participant[];
 }

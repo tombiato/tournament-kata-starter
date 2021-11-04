@@ -1,95 +1,60 @@
 import {
   Body,
   Controller,
-  Get,
-  Param,
-  Post,
   HttpException,
+  HttpStatus,
+  Post,
+  Param,
+  Get,
+  Delete,
 } from '@nestjs/common';
-import { HttpStatus } from '@nestjs/common';
-import { Tournament, TournamentToAdd, Participant, ParticipantToAdd } from '../../api-model';
-import { v4 as uuidv4 } from 'uuid';
+import { TournamentToAdd } from '../../api-model';
 import { TournamentRepositoryService } from '../../repositories/tournament-repository.service';
+import { Tournament } from '../../schemas/tournament.schema';
+import * as mongoose from 'mongoose';
 
 @Controller('tournaments')
 export class TournamentController {
   constructor(private tournamentRepository: TournamentRepositoryService) {}
 
-  @Get(':id')
-  public getTournament(@Param('id') id: string): Tournament {
-    try {
-      const tournament = this.tournamentRepository.getTournament(id)
-      return tournament;
-    } catch (error) {
-      throw new HttpException("le tournoi n'existe pas", HttpStatus.NOT_FOUND);
-    }
-  }
-
   @Post()
-  public createTournament(@Body() tournamentToAdd: TournamentToAdd): {
-    id: string;
-  } {
-    try {
-      const tournament = {
-        id: uuidv4(),
-        name: tournamentToAdd.name,
-        phases: [],
-        participants: [],
-      };
-
-      this.tournamentRepository.saveTournament(tournament);
-
-      return { id: tournament.id };
-    } catch (error) {
-      throw new HttpException(
-        'le champ nom est manquant ou vide',
-        HttpStatus.BAD_REQUEST
-      );
+  public async createTournament(
+    @Body() tournamentToAdd: TournamentToAdd
+  ): Promise<{ id: string }> {
+    if (tournamentToAdd.name.length < 1) {
+      throw new HttpException('Name is missing', HttpStatus.BAD_REQUEST);
     }
-  }
 
-  @Post(':id/participants')
-  public addParticipant(
-    @Param('id') idTournament: string,
-    @Body() participantToAdd: ParticipantToAdd
-  ): string {
-    if (!participantToAdd?.name || !Number.isInteger(participantToAdd?.elo))
-      throw new HttpException(
-        'le nom (chaine de caractères non vide) ou l\'elo (nombre entier) sont incorrects', 
-        HttpStatus.BAD_REQUEST
-        );
-
-    if (!this.tournamentRepository.getTournament(idTournament))
-      throw new HttpException(
-        'le tournoi n\'existe pas',
-        HttpStatus.NOT_FOUND
-      );
-
-    const participant: Participant = {
-      id: uuidv4(),
-      name: participantToAdd.name.trim(),
-      elo: participantToAdd.elo,
+    const tournament = {
+      name: tournamentToAdd.name,
+      phases: [],
+      participants: [],
     };
 
-    this.tournamentRepository.saveParticipant(idTournament, participant);
+    const res = await this.tournamentRepository.createTournament(tournament);
 
-    return participant.id;
+    return { id: res.id };
   }
 
-  // /**
-  //  * requete de création de phase
-  //  */
-  // @Post(':id/phase/:phaseType')
-  // public addPhase(@Param('id') id: string, @Param('phaseType') phaseType: string){
-  //   let tournamentToModify = this.tournamentRepository.getTournament(id);
-  //   const phaseToAdd ={
-  //       type : phaseType
-  //   }
-  //   const tournamentModified = {
-  //     id: tournamentToModify.id,
-  //     name: tournamentToModify.name,
-  //     phases: []
-  //   }
-  //   tournamentToModify.phases.set;
-  // }
+  @Get(':id')
+  public async getTournament(@Param('id') id: string): Promise<Tournament> {
+    const tournamentId = await this.tournamentRepository.findOne(
+      new mongoose.Types.ObjectId(id)
+    );
+
+    if (tournamentId) {
+      return tournamentId;
+    }
+
+    throw new HttpException(
+      "This tournament doesn't exist",
+      HttpStatus.NOT_FOUND
+    );
+  }
+
+  @Delete()
+  public async removeAllTournaments(): Promise<void> {
+    const { deletedCount } = await this.tournamentRepository.deleteAll();
+    console.info(deletedCount, 'élément.s supprimé.s');
+  }
 }

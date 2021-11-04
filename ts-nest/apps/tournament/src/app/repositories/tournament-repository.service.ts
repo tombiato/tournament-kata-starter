@@ -1,25 +1,36 @@
+import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { Tournament } from '../api-model';
-import { Participant } from '../api-model';
+import { InjectModel } from '@nestjs/mongoose';
+import { Tournament, TournamentDocument } from '../schemas/tournament.schema';
+import { CreateTournamentDto } from '../api-model';
+import * as mongoose from 'mongoose';
+import { DeleteResult } from 'mongodb';
 
 @Injectable()
 export class TournamentRepositoryService {
-  private tournaments = new Map<string, Tournament>();
+  constructor(
+    @InjectModel(Tournament.name)
+    private tournamentModel: Model<TournamentDocument>
+  ) {}
 
-  public saveTournament(tournament: Tournament): void {
-    this.tournaments.set(tournament.id, tournament);
+  async createTournament(
+    createTournamentDto: CreateTournamentDto
+  ): Promise<Tournament> {
+    const createdTournament = new this.tournamentModel(createTournamentDto);
+    createdTournament.id = createdTournament._id;
+
+    return createdTournament.save();
   }
 
-  public getTournament(tournamentId: string): Tournament {
-    return this.tournaments.get(tournamentId);
+  async findAll(): Promise<Tournament[]> {
+    return this.tournamentModel.find().exec();
   }
 
-  public saveParticipant(tournamentId: string, participant: Participant): void {
-    //this.tournaments.set(tournamentId, participant);
-    const tournament = this.tournaments.get(tournamentId);
-    this.tournaments.set(tournamentId, {
-      ...tournament, 
-      participants: [...tournament.participants, participant]
-    })
+  async findOne(tournamentId: mongoose.Types.ObjectId): Promise<Tournament> {
+    return this.tournamentModel.findById(tournamentId).exec();
+  }
+
+  async deleteAll(): Promise<DeleteResult> {
+    return this.tournamentModel.deleteMany({});
   }
 }
